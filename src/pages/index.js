@@ -1,4 +1,4 @@
-export { HomePage } from "./Home/Homepage";
+export { HomePage } from "./Home/HomePage";
 export { ProductsList } from "./Products/ProductsList";
 export { ProductDetail } from "./ProductDetail";
 
@@ -8,5 +8,3 @@ export { DashboardPage } from "./Dashboard/DashboardPage";
 
 export { Login } from "./Login";
 export { Register } from "./Register";
-
-export { PageNotFound } from "./PageNotFound";

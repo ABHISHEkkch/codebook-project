@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { useCart } from "../../../context";
-import { createOrder, getUser } from "../../../services";
 
 export const Checkout = ({setCheckout}) => {
   const { cartList, total, clearCart } = useCart();
@@ -10,26 +8,44 @@ export const Checkout = ({setCheckout}) => {
 
   const navigate = useNavigate();
 
+  const token = JSON.parse(sessionStorage.getItem("token"));
+  const cbid = JSON.parse(sessionStorage.getItem("cbid"));
+
   useEffect(() => {
-    async function fetchData(){
-        try{
-            const data = await getUser();
-            setUser(data);
-        } catch(error){
-            toast.error(error.message, { closeButton: true, position: "bottom-center" });
-        }        
+    async function getUser(){
+        const response = await fetch(`http://localhost:8000/600/users/${cbid}`, {
+            method: "GET",
+            headers: {"Content-Type": "application/json", Authorization: `Bearer ${token}`}
+        });
+        const data = await response.json();
+        setUser(data);
     }
-    fetchData();
+    getUser();
   }, []);
 
   async function handleOrderSubmit(event){
     event.preventDefault();
+
     try {
-        const data = await createOrder(cartList, total, user);
+        const order = {
+            cartList: cartList,
+            amount_paid: total,
+            quantity: cartList.length,
+            user: {
+                name: user.name,
+                email: user.email,
+                id: user.id
+            }
+        }
+        const response = await fetch("http://localhost:8000/660/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(order)
+        });
+        const data = await response.json();
         clearCart();
         navigate("/order-summary", { state: {data: data, status: true} });
     } catch(error) {
-        toast.error(error.message, { closeButton: true, position: "bottom-center" });
         navigate("/order-summary", { state: {status: false} });
     }
   }
@@ -65,8 +81,8 @@ export const Checkout = ({setCheckout}) => {
                         </div>
                         <div className="">
                             <label htmlFor="code" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Expiry Date:</label>
-                            <input type="number" name="month" id="month" className=" w-20 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:value-gray-400 dark:text-white" value="03" disabled required="" />
-                            <input type="number" name="year" id="year" className=" w-20 ml-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:value-gray-400 dark:text-white" value="27" disabled required="" />
+                            <input type="number" name="month" id="month" className="inline-block w-20 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:value-gray-400 dark:text-white" value="03" disabled required="" />
+                            <input type="number" name="year" id="year" className="inline-block w-20 ml-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:value-gray-400 dark:text-white" value="27" disabled required="" />
                         </div>
                         <div>
                             <label htmlFor="code" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300" >Security Code:</label>
